@@ -1,0 +1,8 @@
+com\demand\driven\dto\ResultType.class
+com\demand\driven\dto\BaseRequest.class
+com\demand\driven\dto\BaseResponse.class
+com\demand\driven\dto\BizDataRequest$BizDataRequestBuilder.class
+com\demand\driven\dto\BizDataResponse.class
+com\demand\driven\dto\BaseResponse$BaseResponseBuilder.class
+com\demand\driven\dto\BaseRequest$BaseRequestBuilder.class
+com\demand\driven\dto\BizDataRequest.class
