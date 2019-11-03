@@ -2,14 +2,13 @@ package com.demand.driven.service;
 
 import com.demand.driven.dto.BizDataRequest;
 import com.demand.driven.dto.ImportBizDataResponse;
-import com.demand.driven.entity.BizData;
-import com.demand.driven.entity.Organization;
-import com.demand.driven.entity.Product;
-import com.demand.driven.entity.Unit;
+import com.demand.driven.entity.*;
 import com.demand.driven.mapper.BizDataMapper;
+import com.demand.driven.mapper.HistoryDataMapper;
 import com.demand.driven.mapper.OrganizationMapper;
 import com.demand.driven.mapper.UnitMapper;
 import com.demand.driven.support.ProductManager;
+import com.demand.driven.util.DateUtil;
 import com.demand.driven.vo.ImpDataValidateRes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +17,7 @@ import org.springframework.util.StringUtils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.regex.Pattern;
 
 /**
@@ -35,6 +35,8 @@ public class HisBizDataImportServiceImpl implements HisBizDataImportService {
     private UnitMapper unitMapper;
     @Autowired
     private BizDataMapper bizDataMapper;
+    @Autowired
+    private HistoryDataMapper historyDataMapper;
 
     public ImportBizDataResponse importHizBizData(BizDataRequest bizDataRequest){
 
@@ -52,8 +54,35 @@ public class HisBizDataImportServiceImpl implements HisBizDataImportService {
         }
 
         //更新或插入业务数据
+        HistoryData queryData = new HistoryData();
+        //根据校验时获得的数据，构造查询条件对象
+        queryData.setProductId(validateRes.getProduct().getId());
+        queryData.setOrganizationId(validateRes.getOrganization().getId());
+        queryData.setBizDataId(validateRes.getBizData().getId());
+        queryData.setPeriod(bizDataRequest.getPeriod());
 
-        log.info("历史业务数据导入成功,bizDataRequest=[{}]", bizDataRequest);
+        HistoryData oldHisData = historyDataMapper.getDataByPOBP(queryData);
+        String timeStr = DateUtil.formatDateLongStr(new Date());
+        String impModel;
+        if(oldHisData != null){
+            //更新数据
+            oldHisData.setVersion( oldHisData.getVersion() + 1);
+            oldHisData.setComments("["+ timeStr +"]接口导入更新");
+            oldHisData.setValue(new Double(bizDataRequest.getValue()));
+
+            historyDataMapper.update(oldHisData);
+            impModel = "update";
+        }else{
+            //插入数据
+            queryData.setVersion(1);
+            queryData.setComments("["+ timeStr +"]接口导入新增");
+            queryData.setValue(new Double(bizDataRequest.getValue()));
+
+            historyDataMapper.insert(queryData);
+            impModel = "insert";
+        }
+
+        log.info("历史业务数据导入[{}]成功,bizDataRequest=[{}]", impModel, bizDataRequest);
         response.setSuccess(true);
         return response;
     }
@@ -69,6 +98,7 @@ public class HisBizDataImportServiceImpl implements HisBizDataImportService {
             res.setErrorMessage("产品编码不合法");
             return res;
         }
+        res.setProduct(product);
 
         //组合合法性校验
         Organization organization =  organizationMapper.getOrganizationByCode(bizDataRequest.getOrganizationCode());
@@ -77,6 +107,7 @@ public class HisBizDataImportServiceImpl implements HisBizDataImportService {
             res.setErrorMessage("组织编码不合法");
             return res;
         }
+        res.setOrganization(organization);
 
         //业务数据校验
         BizData bizData =  bizDataMapper.getBizDataByCode(bizDataRequest.getBizDataCode());
@@ -92,6 +123,7 @@ public class HisBizDataImportServiceImpl implements HisBizDataImportService {
             res.setErrorMessage("业务数据编码不合法");
             return res;
         }
+        res.setBizData(bizData);
 
         //期间校验
         if( !isValidPeriodFormat(bizDataRequest.getPeriod()) ){
