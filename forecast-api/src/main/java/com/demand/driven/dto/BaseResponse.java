@@ -25,7 +25,7 @@ public class BaseResponse<T>  implements Serializable{
      * @return
      */
     public static <T> BaseResponse<T> error(String errorCode,String errorMessage){
-        return create("0",errorCode, errorMessage, null );
+        return create(ResultType.FAIL.getCode(),errorCode, errorMessage, null );
     }
 
     /**
@@ -35,7 +35,7 @@ public class BaseResponse<T>  implements Serializable{
      * @return
      */
     public static <T> BaseResponse<T> error(String errorMessage){
-        return create("0","", errorMessage, null );
+        return create(ResultType.FAIL.getCode(),"", errorMessage, null );
     }
 
     /**
@@ -45,7 +45,7 @@ public class BaseResponse<T>  implements Serializable{
      * @return
      */
     public static <T> BaseResponse<T> success(T t){
-        return create("1","200","OK", t);
+        return create(ResultType.SUCCESS.getCode(),"200","OK", t);
     }
 
     public static <T> BaseResponse<T> create(String status,String errorCode,String errorMessage,T t){

@@ -1,5 +1,5 @@
 sever:
-  prot: 80
+  prot: 8080
 
 spring:
   application:

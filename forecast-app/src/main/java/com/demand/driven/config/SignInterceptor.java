@@ -22,8 +22,8 @@ import java.util.Map;
 @Slf4j
 public class SignInterceptor implements HandlerInterceptor {
 
-   @Value("${is_dev_env}")
-   private String isDevEvn;
+   //@Value("${is_dev_env}")
+   private String isDevEvn = "true";
 
     //@Value("${app_config.signKey}")
     private String signKey = "zzyyxxaabbcc";

@@ -6,7 +6,7 @@ import lombok.Data;
  * Created by zzy on 2019/11/2.
  */
 @Data
-public class Product {
+public class Organization {
 
     private Long id;
     private String code;

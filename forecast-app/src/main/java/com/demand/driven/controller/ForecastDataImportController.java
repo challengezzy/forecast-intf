@@ -4,7 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.demand.driven.dto.BaseRequest;
 import com.demand.driven.dto.BaseResponse;
+import com.demand.driven.dto.BizDataRequest;
+import com.demand.driven.dto.ImportBizDataResponse;
+import com.demand.driven.service.HisBizDataImportService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,12 +21,24 @@ import static com.demand.driven.dto.ResultType.SUCCESS;
 @Slf4j
 public class ForecastDataImportController {
 
+    @Autowired
+    private HisBizDataImportService hisBizDataImportService;
+
     @PostMapping("/dataImport/hisBizDataSingle")
-    public BaseResponse<String> dataImport(@RequestBody @Validated BaseRequest<JSONObject> dataReqeust) {
-        log.info("预测业务数据导入，request={}", JSON.toJSONString(dataReqeust));
+    public BaseResponse<String> dataImport(BaseRequest<String> dataReqeust) {
 
+        BizDataRequest bizDataReq = JSON.parseObject(dataReqeust.getData(),BizDataRequest.class);
+        log.info("预测业务数据导入，request={}", JSON.toJSONString(bizDataReq));
 
-        BaseResponse response = buildResponse();
+        ImportBizDataResponse bizDataResponse = hisBizDataImportService.importHizBizData(bizDataReq);
+
+        BaseResponse response;
+        if(bizDataResponse.isSuccess()){
+            response = BaseResponse.success(bizDataResponse);
+        }else{
+            response = BaseResponse.error(bizDataResponse.getErrorCode(),bizDataResponse.getErrorMessage());
+        }
+
         log.info("预测业务数据导入，response={}", JSON.toJSONString(response));
         return response;
     }
